@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Głosowanie Szkolne</title>
+    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore.js"></script>
+    <script>
+        // Twoja konfiguracja Firebase
+        const firebaseConfig = {
+            apiKey: "TWÓJ_API_KEY",
+            authDomain: "TWÓJ_AUTH_DOMAIN",
+            projectId: "TWÓJ_PROJECT_ID",
+            storageBucket: "TWÓJ_STORAGE_BUCKET",
+            messagingSenderId: "TWÓJ_MESSAGING_SENDER_ID",
+            appId: "TWÓJ_APP_ID"
+        };
+
+        // Inicjalizacja Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Funkcje do rejestracji i logowania
+        async function register() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                alert('Rejestracja zakończona sukcesem!');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                alert('Zalogowano pomyślnie!');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function submitVote() {
+            const vote = document.getElementById('vote').value;
+            await db.collection('votes').add({
+                vote: vote,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert('Głos został oddany!');
+        }
+
+        async function viewVotes() {
+            const votesSnapshot = await db.collection('votes').get();
+            let votesList = '';
+            votesSnapshot.forEach(doc => {
+                votesList += doc.data().vote + '\n';
+            });
+            alert('Oddane głosy:\n' + votesList);
+        }
+    </script>
+</head>
+<body>
+    <h1>Głosowanie Szkolne</h1>
+    <div>
+        <h2>Rejestracja</h2>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Hasło">
+        <button onclick="register()">Zarejestruj się</button>
+    </div>
+    <div>
+        <h2>Logowanie</h2>
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="password" id="password" placeholder="Hasło">
+        <button onclick="login()">Zaloguj się</button>
+    </div>
+    <div>
+        <h2>Oddaj głos</h2>
+        <input type="text" id="vote" placeholder="Twój głos">
+        <button onclick="submitVote()">Oddaj głos</button>
+    </div>
+    <div>
+        <h2>Wyświetl głosy (Admin)</h2>
+        <button onclick="viewVotes()">Pokaż głosy</button>
+    </div>
+</body>
+</html>
